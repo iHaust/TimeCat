@@ -18,19 +18,19 @@ import { TerminateWatcher } from './terminate'
 import { FontWatcher } from './font'
 
 export const baseWatchers = {
-    DOMWatcher,
-    FormElementWatcher,
-    MouseWatcher,
-    ScrollWatcher
+  DOMWatcher,
+  FormElementWatcher,
+  MouseWatcher,
+  ScrollWatcher
 }
 
 export const watchers = {
-    LocationWatcher,
-    ...baseWatchers,
-    WindowWatcher,
-    CanvasSnapshotWatcher,
-    Canvas2DWatcher,
-    CanvasWebGLWatcher,
-    FontWatcher,
-    TerminateWatcher
+  LocationWatcher,
+  ...baseWatchers,
+  WindowWatcher,
+  CanvasSnapshotWatcher,
+  Canvas2DWatcher,
+  CanvasWebGLWatcher,
+  FontWatcher,
+  TerminateWatcher
 }

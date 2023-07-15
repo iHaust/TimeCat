@@ -12,13 +12,13 @@ import { getRandomCode, getTime } from '@timecat/utils'
 import pkg from 'pkg'
 
 export function getHeadData() {
-    return {
-        href: location.href,
-        title: document.title,
-        relatedId: getRandomCode(),
-        userAgent: navigator.userAgent,
-        platform: navigator.platform,
-        beginTime: getTime(),
-        version: pkg.version
-    } as ReplayHead
+  return {
+    href: location.href,
+    title: document.title,
+    relatedId: getRandomCode(),
+    userAgent: navigator.userAgent,
+    platform: navigator.platform,
+    beginTime: getTime(),
+    version: pkg.version
+  } as ReplayHead
 }

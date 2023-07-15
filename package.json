@@ -37,7 +37,7 @@
         ],
         "*.ts?(x)": [
             "eslint",
-            "prettier --parser=typescript --write"
+            "prettier --write --parser=typescript"
         ]
     },
     "engines": {

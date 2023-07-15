@@ -11,14 +11,14 @@ export * from '@timecat/recorder'
 export { Player, PlayerModule, exportReplay, createReplayDocument } from '@timecat/player'
 
 export {
-    RecordData,
-    DBRecordData,
-    BaseRecord,
-    RecordType,
-    AudioOptionsData,
-    ReplayOptions,
-    ReplayData,
-    ReplayHead
+  RecordData,
+  DBRecordData,
+  BaseRecord,
+  RecordType,
+  AudioOptionsData,
+  ReplayOptions,
+  ReplayData,
+  ReplayHead
 } from '@timecat/share'
 
 export { version, delay, debounce, throttle } from '@timecat/utils'

@@ -13,20 +13,20 @@ import { nodeStore } from '@timecat/utils'
 import { PlayerComponent } from '../components/player'
 
 export function renderVideo(this: PlayerComponent, data: VideoRecordData) {
-    const { id, blobUrl } = data
+  const { id, blobUrl } = data
 
-    if (!blobUrl) {
-        return
-    }
+  if (!blobUrl) {
+    return
+  }
 
-    const targetNode = nodeStore.getNode(id)
-    const targetVideo = targetNode as HTMLVideoElement
+  const targetNode = nodeStore.getNode(id)
+  const targetVideo = targetNode as HTMLVideoElement
 
-    if (!targetVideo) {
-        return
-    }
+  if (!targetVideo) {
+    return
+  }
 
-    targetVideo.autoplay = targetVideo.muted = true
-    targetVideo.loop = targetVideo.controls = false
-    targetVideo.src = blobUrl
+  targetVideo.autoplay = targetVideo.muted = true
+  targetVideo.loop = targetVideo.controls = false
+  targetVideo.src = blobUrl
 }

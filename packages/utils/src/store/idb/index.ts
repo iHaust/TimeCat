@@ -6,8 +6,8 @@
  * LICENSE file in the root directory of this source tree.
  *
  */
-
+import { DB_NAME, DB_TABLE } from './consts'
 import { IDB } from './idb'
 export { IDB } from './idb'
 
-export const idb = new IDB('cat_db', 1, 'cat_data')
+export const idb = new IDB(DB_NAME, 1, DB_TABLE)

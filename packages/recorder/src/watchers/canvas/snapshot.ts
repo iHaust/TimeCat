@@ -12,22 +12,22 @@ import { Watcher } from '../../watcher'
 import { isCanvasBlank } from './utils'
 
 export class CanvasSnapshotWatcher extends Watcher<CanvasRecord> {
-    protected init() {
-        const canvasElements = document.getElementsByTagName('canvas')
-        Array.from(canvasElements).forEach(canvas => {
-            this.snapshotCanvas(canvas)
-        })
+  protected init() {
+    const canvasElements = document.getElementsByTagName('canvas')
+    Array.from(canvasElements).forEach(canvas => {
+      this.snapshotCanvas(canvas)
+    })
+  }
+
+  public snapshotCanvas(canvas: HTMLCanvasElement) {
+    if (isCanvasBlank(canvas)) {
+      return
     }
 
-    public snapshotCanvas(canvas: HTMLCanvasElement) {
-        if (isCanvasBlank(canvas)) {
-            return
-        }
-
-        const dataURL = canvas.toDataURL()
-        this.emitData(RecordType.CANVAS_SNAPSHOT, {
-            id: this.getNodeId(canvas),
-            src: dataURL
-        })
-    }
+    const dataURL = canvas.toDataURL()
+    this.emitData(RecordType.CANVAS_SNAPSHOT, {
+      id: this.getNodeId(canvas),
+      src: dataURL
+    })
+  }
 }

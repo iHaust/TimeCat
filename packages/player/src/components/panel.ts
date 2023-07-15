@@ -18,37 +18,37 @@ import { Component, IComponent, html } from '../utils'
 import { ToolboxComponent } from './toolbox'
 
 @Component(
-    'player-panel',
-    html`<div class="player-panel">
-        <slot></slot>
-    </div>`
+  'player-panel',
+  html`<div class="player-panel">
+    <slot></slot>
+  </div>`
 )
 export class PanelComponent implements IComponent {
-    target: HTMLElement
-    parent: HTMLElement
-    keyboard: KeyboardComponent
-    progress: ProgressComponent
-    pointer: PointerComponent
-    player: PlayerComponent
-    broadcaster: BroadcasterComponent
-    c: ContainerComponent
-    options: ReplayInternalOptions
+  target: HTMLElement
+  parent: HTMLElement
+  keyboard: KeyboardComponent
+  progress: ProgressComponent
+  pointer: PointerComponent
+  player: PlayerComponent
+  broadcaster: BroadcasterComponent
+  c: ContainerComponent
+  options: ReplayInternalOptions
 
-    constructor(c: ContainerComponent) {
-        this.c = c
-        this.options = c.options
-        if (this.options.hidePanel) {
-            this.target.style.display = 'none'
-        }
-        this.initComponent()
+  constructor(c: ContainerComponent) {
+    this.c = c
+    this.options = c.options
+    if (this.options.hidePanel) {
+      this.target.style.display = 'none'
     }
+    this.initComponent()
+  }
 
-    private initComponent() {
-        new ToolboxComponent(this.options, this.c)
-        this.keyboard = new KeyboardComponent(this.options, this.c)
-        this.progress = new ProgressComponent(this.options, this.c)
-        this.pointer = new PointerComponent(this.c)
-        this.broadcaster = new BroadcasterComponent(this.c)
-        this.player = new PlayerComponent(this.options, this.c, this.pointer, this.progress, this.broadcaster)
-    }
+  private initComponent() {
+    new ToolboxComponent(this.options, this.c)
+    this.keyboard = new KeyboardComponent(this.options, this.c)
+    this.progress = new ProgressComponent(this.options, this.c)
+    this.pointer = new PointerComponent(this.c)
+    this.broadcaster = new BroadcasterComponent(this.c)
+    this.player = new PlayerComponent(this.options, this.c, this.pointer, this.progress, this.broadcaster)
+  }
 }

@@ -8,8 +8,8 @@
  */
 
 export const TimeCatModel = [
-    ['type', 'type', { unique: false }],
-    ['data', 'data', { unique: false }],
-    ['relatedId', 'relatedId', { unique: false }],
-    ['time', 'time', { unique: false }]
+  ['type', 'type', { unique: false }],
+  ['data', 'data', { unique: false }],
+  ['relatedId', 'relatedId', { unique: false }],
+  ['time', 'time', { unique: false }]
 ]
