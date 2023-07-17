@@ -1,17 +1,27 @@
-/**
- * Copyright (c) oct16.
- * https://github.com/oct16
- *
- * This source code is licensed under the GPL-3.0 license found in the
- * LICENSE file in the root directory of this source tree.
- *
+/*
+ * @Author: zhanglitao@zuoyebang.com
+ * @Date: 2023-07-12 15:11:18
+ * @LastEditors: zhanglitao@zuoyebang.com
+ * @LastEditTime: 2023-07-17 17:14:12
+ * @FilePath: /TimeCat/packages/recorder/src/snapshot.ts
+ * @Description: 增加类开放静态方法 DOMSnapshotData
  */
 
 import { Watcher } from './watcher'
-import { SnapshotRecord, RecordType, InfoData, VNode, VSNode, PreFetchRecordData } from '@timecat/share'
-import { createElement } from '@timecat/virtual-dom'
+import {
+  SnapshotRecord,
+  RecordType,
+  InfoData,
+  VNode,
+  VSNode,
+  PreFetchRecordData,
+  CanvasRecord,
+  RecordData
+} from '@timecat/share'
+import { createElement, requestElement } from '@timecat/virtual-dom'
 import { nodeStore, isVNode, getTime } from '@timecat/utils'
 import { rewriteNodes } from './common'
+import { isCanvasBlank } from './watchers/canvas/utils'
 
 export class Snapshot extends Watcher<SnapshotRecord> {
   protected init() {
@@ -75,5 +85,53 @@ export class Snapshot extends Watcher<SnapshotRecord> {
     rewriteNodes(deepLoopChildNodes(vNode.children), configs, data => {
       this.emitData(RecordType.PATCH, data as PreFetchRecordData, time + 1)
     })
+  }
+
+  private requestDOMSnapshotData(context: Window): SnapshotRecord['data'] {
+    return {
+      vNode: requestElement(context.document.documentElement) as VNode,
+      ...this.getInitInfo(context)
+    }
+  }
+
+  private getDOMSnapshotData(context: Window): SnapshotRecord['data'] {
+    return this.requestDOMSnapshotData(context)
+  }
+
+  private getCanvasSnapshotData(canvas: HTMLCanvasElement) {
+    if (isCanvasBlank(canvas)) {
+      return false
+    }
+    const dataURL = canvas.toDataURL()
+    return {
+      id: nodeStore.getNodeId(canvas),
+      src: dataURL
+    }
+  }
+
+  static GetSnapDomForRecord(context: Window, record: RecordData): RecordData {
+    return {
+      type: RecordType.SNAPSHOT,
+      aaaa: 'brucecham test snapDom',
+      data: this.prototype.getDOMSnapshotData(context),
+      relatedId: record.relatedId,
+      time: record.time
+    }
+  }
+
+  static GetSnapCanvasForRecords(canvasList: HTMLCollectionOf<HTMLCanvasElement>, record: RecordData): RecordData[] {
+    const result: RecordData[] = []
+    Array.from(canvasList).forEach(canvas => {
+      const canvasData = this.prototype.getCanvasSnapshotData(canvas)
+      canvasData &&
+        result.push({
+          type: RecordType.CANVAS_SNAPSHOT,
+          aaaa: 'brucecham test snapCanvas',
+          data: canvasData as any,
+          relatedId: record.relatedId,
+          time: record.time
+        })
+    })
+    return result
   }
 }

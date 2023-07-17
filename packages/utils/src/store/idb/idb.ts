@@ -78,30 +78,64 @@ export class IDB extends Database {
     const markTime = getTime()
     await this.dbResolve
     const store = this.getIDBObjectStore(TransactionMode.READONLY)
-    const records: DBRecordData[] = []
+    let records: DBRecordData[] = []
 
-    // This would be store.getAll(), but it isn't supported by IE now.
     return new Promise(resolve => {
-      store.openCursor().onsuccess = event => {
-        const cursor = event!.target!.result
-        if (cursor) {
-          let storeRecord = cursor.value
-          if (
-            limit &&
-            cursor.value &&
-            cursor.value?.type > RecordType.SNAPSHOT &&
-            markTime - cursor.value?.time > limit
-          ) {
-            storeRecord = null
+      store.getAll().onsuccess = event => {
+        const storeRecords = event!.target!.result
+        let snapDomRecord: any
+        let snapCanvasRecords: any
+
+        storeRecords.forEach((record: DBRecordData) => {
+          const storeRecord: DBRecordData | null = record
+          if (limit && markTime - record?.time > limit) {
+            return false
           }
-          storeRecord && records.push(storeRecord)
-          cursor.continue()
-          return
+
+          if (limit) {
+            !snapDomRecord && (snapDomRecord = record.snapDomRecord)
+            !snapCanvasRecords && (snapCanvasRecords = record.snapCanvasRecords)
+          }
+
+          delete storeRecord.snapDomRecord
+          delete storeRecord.snapCanvasRecords
+          records.push(storeRecord)
+        })
+
+        // 还原快照 for dom
+        if (limit && snapDomRecord && records[0]?.type !== RecordType.HEAD) {
+          records = [snapDomRecord, ...records]
         }
 
+        // 还原快照 for canvas
+        if (limit && snapCanvasRecords) {
+          records = [...snapCanvasRecords, ...records]
+        }
         resolve(records)
       }
     }).then((arr: DBRecordData[]) => (arr.length ? arr : null))
+    // This would be store.getAll(), but it isn't supported by IE now.
+    // return new Promise(resolve => {
+    //   store.openCursor().onsuccess = event => {
+    //     const cursor = event!.target!.result
+    //     if (cursor) {
+    //       let storeRecord = cursor.value
+    //       if (
+    //         limit &&
+    //         cursor.value &&
+    //         cursor.value?.type > RecordType.SNAPSHOT &&
+    //         markTime - cursor.value?.time > limit
+    //       ) {
+    //         storeRecord = null
+    //       }
+    //       storeRecord && records.push(storeRecord)
+    //       cursor.continue()
+    //       return
+    //     }
+
+    //     resolve(records)
+    //   }
+    // }).then((arr: DBRecordData[]) => (arr.length ? arr : null))
   }
 
   private execTask(task: Task) {

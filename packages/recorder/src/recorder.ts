@@ -10,7 +10,17 @@
 import { watchers, baseWatchers } from './watchers'
 import { AudioWatcher } from './audio'
 import { RecordData, RecordType, TerminateRecord } from '@timecat/share'
-import { logError, nodeStore, getTime, tempEmptyFn, tempEmptyPromise, IDB, idb, delay } from '@timecat/utils'
+import {
+  logError,
+  nodeStore,
+  getTime,
+  tempEmptyFn,
+  tempEmptyPromise,
+  tempPromise,
+  IDB,
+  idb,
+  delay
+} from '@timecat/utils'
 import { Snapshot } from './snapshot'
 import { getHeadData } from './head'
 import { LocationWatcher } from './watchers/location'
@@ -29,7 +39,8 @@ export class Recorder {
   public record: RecorderModule['record'] = tempEmptyPromise as RecorderModule['record']
   public use: RecorderModule['use'] = tempEmptyFn
   public clearDB: RecorderModule['clearDB'] = tempEmptyPromise
-  public readDB: ReadDB
+  public readDB: RecorderModule['readDB'] = tempPromise
+  public getNodeStore: RecorderModule['getNodeStore'] = () => {}
   constructor(options?: RecordOptions) {
     const recorder = new RecorderModule(options)
     Object.keys(this).forEach((key: keyof Recorder) => {
@@ -153,6 +164,9 @@ export class RecorderModule extends Pluginable {
     return await this.db.readAll(options)
   }
 
+  public getNodeStore(): any {
+    return nodeStore
+  }
   private async cancelListener() {
     // wait for watchers loaded
     await this.watchesReadyPromise
@@ -231,6 +245,13 @@ export class RecorderModule extends Pluginable {
           return
         }
 
+        if (!data.snapDomRecord) {
+          data.snapDomRecord = Snapshot.GetSnapDomForRecord(window, data)
+        }
+
+        if (!data.snapCanvasRecords) {
+          data.snapCanvasRecords = Snapshot.GetSnapCanvasForRecords(document.getElementsByTagName('canvas'), data)
+        }
         emitTasks.push(data)
         execTasksChain()
       }

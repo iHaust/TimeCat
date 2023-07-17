@@ -132,10 +132,31 @@ export const createElement = (el: Node, inheritSVG?: boolean): VNode | VSNode | 
       }
     })
   }
+  return vNode
+}
 
+export const requestElement = (el: Node, inheritSVG?: boolean): VNode | VSNode | null => {
+  const vId = nodeStore.getNodeId(el)
+  const vNode = getVNode(el, { isSVG: inheritSVG, id: vId })
+
+  if ((vNode as VNode)?.extra?.props?.textContent) {
+    return vNode
+  }
+
+  if (vNode.type === Node.ELEMENT_NODE) {
+    const vn = vNode as VNode
+    inheritSVG = inheritSVG || vn.extra.isSVG
+    el.childNodes.forEach((node: Element) => {
+      const child = requestElement(node, inheritSVG)
+      if (child) {
+        vn.children.push(child)
+      }
+    })
+  }
   return vNode
 }
 
 export const virtualDOM = {
-  createElement
+  createElement,
+  requestElement
 }

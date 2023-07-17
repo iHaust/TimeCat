@@ -339,6 +339,10 @@ export interface BaseRecord<T, D = any> {
   time: number
   relatedId: string
   id?: number
+  snapDomRecord?: D
+  snapCanvasRecords?: D
+  snapIframeRecords?: D
+  aaaa?: string
 }
 
 export interface FontRecordData {

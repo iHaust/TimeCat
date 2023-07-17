@@ -319,6 +319,7 @@ export function isNativeFunction(fn: Function) {
 
 export const tempEmptyFn = () => {}
 export const tempEmptyPromise = () => Promise.resolve()
+export const tempPromise = () => Promise.resolve(null)
 
 export const canvasContext2DAttrs: (keyof CanvasRenderingContext2D)[] = [
   'direction',
