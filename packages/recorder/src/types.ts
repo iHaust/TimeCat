@@ -2,7 +2,7 @@
  * @Author: zhanglitao@zuoyebang.com
  * @Date: 2023-07-12 14:33:15
  * @LastEditors: zhanglitao@zuoyebang.com
- * @LastEditTime: 2023-07-15 14:41:01
+ * @LastEditTime: 2023-07-17 17:33:27
  * @FilePath: /TimeCat/packages/recorder/src/types.ts
  * @Description: type
  */
@@ -31,6 +31,7 @@ interface RecordOptionsBase {
   font?: boolean
   disableWatchers?: Array<keyof typeof watchers>
   keepAlive?: number | false
+  recordDuration?: number
 }
 
 export interface RecordInternalOptions extends Required<RecordOptions> {

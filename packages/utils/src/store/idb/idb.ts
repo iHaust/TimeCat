@@ -23,7 +23,7 @@ type Task = {
   data?: RecordData | DeleteOptions
 }
 
-type DeleteOptions = { lowerBound: number; upperBound: number }
+type DeleteOptions = { lowerBound?: number; upperBound?: number }
 
 export class IDB extends Database {
   tasks: Task[] = []
@@ -37,6 +37,7 @@ export class IDB extends Database {
   }
 
   public delete(options: DeleteOptions) {
+    console.log('brucecham delete', options)
     this.addTask(TaskTypes.DELETE, options)
   }
 
@@ -138,6 +139,24 @@ export class IDB extends Database {
     // }).then((arr: DBRecordData[]) => (arr.length ? arr : null))
   }
 
+  public async getMarkRecord(options?: { limit: number }) {
+    const { limit = READ_LIMIT_TIME } = options || {}
+    const markTime = getTime()
+    if (!this.db?.transaction) {
+      await this.dbResolve
+    }
+    const store = this.getIDBObjectStore(TransactionMode.READONLY)
+    return new Promise(resolve => {
+      store.getAll().onsuccess = event => {
+        const storeRecords = event!.target!.result
+        const index = storeRecords.findIndex((record: DBRecordData) => {
+          return markTime - record?.time <= limit
+        })
+        resolve(index > 0 ? storeRecords[index - 1] : null)
+      }
+    }).then((record: DBRecordData | null) => record)
+  }
+
   private execTask(task: Task) {
     switch (task.type) {
       case TaskTypes.ADD:
@@ -166,12 +185,19 @@ export class IDB extends Database {
 
   private async execDeleteTask(options: DeleteOptions): Promise<void> {
     const { lowerBound, upperBound } = options || {}
-    if (lowerBound && upperBound) {
-      const keyRange = IDBKeyRange.bound(lowerBound, upperBound)
+    if (lowerBound || upperBound) {
+      let keyRange
+      if (lowerBound && upperBound) {
+        keyRange = IDBKeyRange.bound(lowerBound, upperBound)
+      } else if (upperBound) {
+        keyRange = IDBKeyRange.upperBound(upperBound)
+      } else {
+        keyRange = IDBKeyRange.lowerBound(lowerBound)
+      }
       const store = this.getIDBObjectStore(TransactionMode.READWRITE)
       store.delete(keyRange)
     } else {
-      logError('Options lowerBound and upperBound is required')
+      logError('Options lowerBound or upperBound is required')
     }
   }
 

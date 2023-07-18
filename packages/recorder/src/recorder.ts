@@ -27,7 +27,10 @@ import { LocationWatcher } from './watchers/location'
 import { Pluginable } from './pluginable'
 import { Watcher } from './watcher'
 import { VideoWatcher } from './watchers/video'
-import { RecorderMiddleware, RecorderStatus, RecordInternalOptions, RecordOptions, ReadDB } from './types'
+import { RecorderMiddleware, RecorderStatus, RecordInternalOptions, RecordOptions } from './types'
+import { READ_LIMIT_TIME } from '../../utils/src/store/idb/consts'
+
+type DeleteOptions = { lowerBound: number; upperBound: number }
 
 export class Recorder {
   public startTime: number
@@ -40,7 +43,7 @@ export class Recorder {
   public use: RecorderModule['use'] = tempEmptyFn
   public clearDB: RecorderModule['clearDB'] = tempEmptyPromise
   public readDB: RecorderModule['readDB'] = tempPromise
-  public getNodeStore: RecorderModule['getNodeStore'] = () => {}
+  public getMarkRecord: RecorderModule['getMarkRecord'] = tempPromise
   constructor(options?: RecordOptions) {
     const recorder = new RecorderModule(options)
     Object.keys(this).forEach((key: keyof Recorder) => {
@@ -109,6 +112,7 @@ export class RecorderModule extends Pluginable {
     this.hooks.beforeRun.call(this)
     this.record(options)
     this.hooks.run.call(this)
+    this.intervalDelDB()
   }
 
   public onData(fn: (data: RecordData, next: () => Promise<void>) => Promise<void>) {
@@ -160,13 +164,18 @@ export class RecorderModule extends Pluginable {
     this.db.clear()
   }
 
-  public async readDB(options?: { limit: number }) {
-    return await this.db.readAll(options)
+  public async readDB() {
+    return await this.db.readAll({
+      limit: this.options.recordDuration
+    })
   }
 
-  public getNodeStore(): any {
-    return nodeStore
+  public async getMarkRecord() {
+    return await this.db.getMarkRecord({
+      limit: this.options.recordDuration
+    })
   }
+
   private async cancelListener() {
     // wait for watchers loaded
     await this.watchesReadyPromise
@@ -391,5 +400,23 @@ export class RecorderModule extends Pluginable {
 
   private createNext(fn: RecorderMiddleware, data: RecordData, next: () => Promise<void>) {
     return async () => await fn(data, next)
+  }
+
+  private async deleteSome() {
+    console.log('brucecham deleteSome')
+    const record = await this.getMarkRecord()
+    if (record?.id) {
+      this.db.delete({
+        upperBound: record.id
+      })
+    }
+  }
+
+  private intervalDelDB() {
+    if (this.options.recordDuration !== 0) {
+      const timer = window.setInterval(async () => {
+        this.deleteSome()
+      }, Math.max(this.options.recordDuration || 0, READ_LIMIT_TIME))
+    }
   }
 }
