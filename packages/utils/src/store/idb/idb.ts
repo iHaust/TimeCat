@@ -7,7 +7,7 @@
  *
  */
 
-import { DBRecordData, RecordData, RecordType, TransactionMode } from '@timecat/share'
+import { DBRecordData, RecordData, TransactionMode } from '@timecat/share'
 
 import { logError, getTime } from '../../tools'
 import { Database } from './database'
@@ -73,70 +73,16 @@ export class IDB extends Database {
     })
   }
 
-  // limit 时间，不传时默认为 30 * 1000，即返回最近30秒的记录，传递为0时，返回全部
-  public async readAll(options?: { limit: number }) {
-    const { limit = READ_LIMIT_TIME } = options || {}
-    const markTime = getTime()
+  public async readAll() {
     await this.dbResolve
     const store = this.getIDBObjectStore(TransactionMode.READONLY)
-    let records: DBRecordData[] = []
 
     return new Promise(resolve => {
       store.getAll().onsuccess = event => {
         const storeRecords = event!.target!.result
-        let snapDomRecord: any
-        let snapCanvasRecords: any
-
-        storeRecords.forEach((record: DBRecordData) => {
-          const storeRecord: DBRecordData | null = record
-          if (limit && markTime - record?.time > limit) {
-            return false
-          }
-
-          if (limit) {
-            !snapDomRecord && (snapDomRecord = record.snapDomRecord)
-            !snapCanvasRecords && (snapCanvasRecords = record.snapCanvasRecords)
-          }
-
-          delete storeRecord.snapDomRecord
-          delete storeRecord.snapCanvasRecords
-          records.push(storeRecord)
-        })
-
-        // 还原快照 for dom
-        if (limit && snapDomRecord && records[0]?.type !== RecordType.HEAD) {
-          records = [snapDomRecord, ...records]
-        }
-
-        // 还原快照 for canvas
-        if (limit && snapCanvasRecords) {
-          records = [...snapCanvasRecords, ...records]
-        }
-        resolve(records)
+        resolve(storeRecords)
       }
     }).then((arr: DBRecordData[]) => (arr.length ? arr : null))
-    // This would be store.getAll(), but it isn't supported by IE now.
-    // return new Promise(resolve => {
-    //   store.openCursor().onsuccess = event => {
-    //     const cursor = event!.target!.result
-    //     if (cursor) {
-    //       let storeRecord = cursor.value
-    //       if (
-    //         limit &&
-    //         cursor.value &&
-    //         cursor.value?.type > RecordType.SNAPSHOT &&
-    //         markTime - cursor.value?.time > limit
-    //       ) {
-    //         storeRecord = null
-    //       }
-    //       storeRecord && records.push(storeRecord)
-    //       cursor.continue()
-    //       return
-    //     }
-
-    //     resolve(records)
-    //   }
-    // }).then((arr: DBRecordData[]) => (arr.length ? arr : null))
   }
 
   public async getMarkRecord(options?: { limit: number }) {
@@ -180,7 +126,16 @@ export class IDB extends Database {
 
   private async execAddTask(data: RecordData): Promise<void> {
     const objectStore = this.getIDBObjectStore(TransactionMode.READWRITE)
-    objectStore.add(data)
+    const callbackFn = data.callbackFn
+    delete data.callbackFn
+    objectStore.add(data).onsuccess = event => {
+      const id = event!.target!.result
+      callbackFn &&
+        callbackFn({
+          ...data,
+          id
+        })
+    }
   }
 
   private async execDeleteTask(options: DeleteOptions): Promise<void> {
@@ -190,9 +145,9 @@ export class IDB extends Database {
       if (lowerBound && upperBound) {
         keyRange = IDBKeyRange.bound(lowerBound, upperBound)
       } else if (upperBound) {
-        keyRange = IDBKeyRange.upperBound(upperBound)
+        keyRange = IDBKeyRange.upperBound(upperBound, true)
       } else {
-        keyRange = IDBKeyRange.lowerBound(lowerBound)
+        keyRange = IDBKeyRange.lowerBound(lowerBound, true)
       }
       const store = this.getIDBObjectStore(TransactionMode.READWRITE)
       store.delete(keyRange)

@@ -236,6 +236,7 @@ export type RecordData =
   | WebGLRecord
   | CanvasSnapshotRecord
   | VideoRecord
+  | MarkSnapRecord
 
 export interface AudioData {
   src: string
@@ -339,10 +340,7 @@ export interface BaseRecord<T, D = any> {
   time: number
   relatedId: string
   id?: number
-  snapDomRecord?: D
-  snapCanvasRecords?: D
-  snapIframeRecords?: D
-  aaaa?: string
+  callbackFn?: any
 }
 
 export interface FontRecordData {
@@ -387,4 +385,16 @@ export interface VideoRecordData {
   id: number
   dataStr?: string
   blobUrl?: string
+}
+
+export type MarkSnapRecord = BaseRecord<999, MarkSnapRecordData>
+export interface MarkSnapRecordData {
+  id?: number
+  type: number
+  relatedId: string
+  time: number
+  snapDomRecord: RecordData
+  snapCanvasRecords: RecordData[]
+  snapIframeRecords?: RecordData[]
+  aaaa?: string
 }

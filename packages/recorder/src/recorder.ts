@@ -9,7 +9,7 @@
 
 import { watchers, baseWatchers } from './watchers'
 import { AudioWatcher } from './audio'
-import { RecordData, RecordType, TerminateRecord } from '@timecat/share'
+import { MarkSnapRecordData, RecordData, RecordType, TerminateRecord } from '@timecat/share'
 import {
   logError,
   nodeStore,
@@ -78,6 +78,7 @@ export class RecorderModule extends Pluginable {
   private watcherResolve: Function
   private startTime: number
   private destroyTime: number
+  private markSnapRecords: MarkSnapRecordData[] = []
 
   public status: RecorderStatus = RecorderStatus.PAUSE
   public db: IDB
@@ -165,9 +166,27 @@ export class RecorderModule extends Pluginable {
   }
 
   public async readDB() {
-    return await this.db.readAll({
-      limit: this.options.recordDuration
+    const records = await this.db.readAll()
+    let result: any = []
+    const markRecord = this.markSnapRecords[0]
+    records?.forEach((record: RecordData) => {
+      if (!markRecord || !record) {
+        return false
+      }
+
+      if ((markRecord.id || 0) > (record.id || 0)) {
+        return false
+      }
+      result.push(record)
     })
+
+    // 还原快照 for dom/canvas
+    if (result[0] && result[0]?.type !== RecordType.HEAD) {
+      result = [...markRecord.snapCanvasRecords, ...result]
+      result = [markRecord.snapDomRecord, ...result]
+    }
+
+    return result
   }
 
   public async getMarkRecord() {
@@ -254,13 +273,39 @@ export class RecorderModule extends Pluginable {
           return
         }
 
-        if (!data.snapDomRecord) {
-          data.snapDomRecord = Snapshot.GetSnapDomForRecord(window, data)
+        let needMarkSnap = false
+        if (this.markSnapRecords.length === 0) {
+          needMarkSnap = true
+        } else {
+          const lastMarkSnapRecord = this.markSnapRecords[this.markSnapRecords.length - 1]
+          if (getTime() - lastMarkSnapRecord.time > Math.max(this.options.recordDuration || 0, READ_LIMIT_TIME)) {
+            needMarkSnap = true
+          }
         }
 
-        if (!data.snapCanvasRecords) {
-          data.snapCanvasRecords = Snapshot.GetSnapCanvasForRecords(document.getElementsByTagName('canvas'), data)
+        if (needMarkSnap) {
+          const record = {
+            type: data.type,
+            time: data.time,
+            id: data.id,
+            relatedId: data.relatedId,
+            snapDomRecord: Snapshot.GetSnapDomForRecord(window, data),
+            snapCanvasRecords: Snapshot.GetSnapCanvasForRecords(document.getElementsByTagName('canvas'), data)
+          }
+          this.markSnapRecords.push(record)
+          data.callbackFn = (dbRecord: RecordData) => {
+            this.markSnapRecords.forEach(item => {
+              if (item.type === dbRecord.type && item.time === dbRecord.time) {
+                item.id = dbRecord.id
+              }
+            })
+          }
         }
+
+        if (this.markSnapRecords.length > 2) {
+          this.markSnapRecords.splice(0, 1)
+        }
+
         emitTasks.push(data)
         execTasksChain()
       }
@@ -403,18 +448,16 @@ export class RecorderModule extends Pluginable {
   }
 
   private async deleteSome() {
-    console.log('brucecham deleteSome')
-    const record = await this.getMarkRecord()
-    if (record?.id) {
+    if (this.markSnapRecords.length === 2 && this.markSnapRecords[0].id) {
       this.db.delete({
-        upperBound: record.id
+        upperBound: this.markSnapRecords[0].id
       })
     }
   }
 
   private intervalDelDB() {
     if (this.options.recordDuration !== 0) {
-      const timer = window.setInterval(async () => {
+      window.setInterval(async () => {
         this.deleteSome()
       }, Math.max(this.options.recordDuration || 0, READ_LIMIT_TIME))
     }

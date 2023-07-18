@@ -2,7 +2,7 @@
  * @Author: zhanglitao@zuoyebang.com
  * @Date: 2023-07-12 15:11:18
  * @LastEditors: zhanglitao@zuoyebang.com
- * @LastEditTime: 2023-07-17 17:14:12
+ * @LastEditTime: 2023-07-18 15:43:36
  * @FilePath: /TimeCat/packages/recorder/src/snapshot.ts
  * @Description: 增加类开放静态方法 DOMSnapshotData
  */
@@ -112,7 +112,6 @@ export class Snapshot extends Watcher<SnapshotRecord> {
   static GetSnapDomForRecord(context: Window, record: RecordData): RecordData {
     return {
       type: RecordType.SNAPSHOT,
-      aaaa: 'brucecham test snapDom',
       data: this.prototype.getDOMSnapshotData(context),
       relatedId: record.relatedId,
       time: record.time
@@ -126,7 +125,6 @@ export class Snapshot extends Watcher<SnapshotRecord> {
       canvasData &&
         result.push({
           type: RecordType.CANVAS_SNAPSHOT,
-          aaaa: 'brucecham test snapCanvas',
           data: canvasData as any,
           relatedId: record.relatedId,
           time: record.time
