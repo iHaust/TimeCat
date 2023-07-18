@@ -74,7 +74,8 @@ export enum RecordType {
   'CUSTOM',
   'WEBGL',
   'CANVAS_SNAPSHOT',
-  'VIDEO'
+  'VIDEO',
+  'MarkSnapRecord'
 }
 
 export enum FormElementEvent {
@@ -387,14 +388,8 @@ export interface VideoRecordData {
   blobUrl?: string
 }
 
-export type MarkSnapRecord = BaseRecord<999, MarkSnapRecordData>
-export interface MarkSnapRecordData {
-  id?: number
-  type: number
-  relatedId: string
-  time: number
+export interface MarkSnapRecord extends BaseRecord<RecordType.MarkSnapRecord, null> {
   snapDomRecord: RecordData
   snapCanvasRecords: RecordData[]
   snapIframeRecords?: RecordData[]
-  aaaa?: string
 }

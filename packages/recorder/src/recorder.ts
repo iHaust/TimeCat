@@ -9,7 +9,7 @@
 
 import { watchers, baseWatchers } from './watchers'
 import { AudioWatcher } from './audio'
-import { MarkSnapRecordData, RecordData, RecordType, TerminateRecord } from '@timecat/share'
+import { MarkSnapRecord, RecordData, RecordType, TerminateRecord } from '@timecat/share'
 import {
   logError,
   nodeStore,
@@ -19,7 +19,9 @@ import {
   tempPromise,
   IDB,
   idb,
-  delay
+  delay,
+  MARK_SNAP_RECORDS,
+  READ_LIMIT_TIME
 } from '@timecat/utils'
 import { Snapshot } from './snapshot'
 import { getHeadData } from './head'
@@ -28,9 +30,6 @@ import { Pluginable } from './pluginable'
 import { Watcher } from './watcher'
 import { VideoWatcher } from './watchers/video'
 import { RecorderMiddleware, RecorderStatus, RecordInternalOptions, RecordOptions } from './types'
-import { READ_LIMIT_TIME } from '../../utils/src/store/idb/consts'
-
-type DeleteOptions = { lowerBound: number; upperBound: number }
 
 export class Recorder {
   public startTime: number
@@ -78,7 +77,7 @@ export class RecorderModule extends Pluginable {
   private watcherResolve: Function
   private startTime: number
   private destroyTime: number
-  private markSnapRecords: MarkSnapRecordData[] = []
+  private markSnapRecords: MarkSnapRecord[] = []
 
   public status: RecorderStatus = RecorderStatus.PAUSE
   public db: IDB
@@ -89,6 +88,13 @@ export class RecorderModule extends Pluginable {
     const opts = this.initOptions(options)
     opts.rootContext = opts.rootContext || opts.context
     this.options = opts
+
+    try {
+      this.markSnapRecords = opts.keep ? JSON.parse(localStorage.getItem(MARK_SNAP_RECORDS) || '[]') : []
+    } catch (err) {
+      this.markSnapRecords = []
+    }
+
     this.watchers = this.getWatchers() as typeof Watcher[]
     this.init()
   }
@@ -169,6 +175,7 @@ export class RecorderModule extends Pluginable {
     const records = await this.db.readAll()
     let result: any = []
     const markRecord = this.markSnapRecords[0]
+
     records?.forEach((record: RecordData) => {
       if (!markRecord || !record) {
         return false
@@ -290,13 +297,17 @@ export class RecorderModule extends Pluginable {
             id: data.id,
             relatedId: data.relatedId,
             snapDomRecord: Snapshot.GetSnapDomForRecord(window, data),
-            snapCanvasRecords: Snapshot.GetSnapCanvasForRecords(document.getElementsByTagName('canvas'), data)
-          }
+            snapCanvasRecords: Snapshot.GetSnapCanvasForRecords(document.getElementsByTagName('canvas'), data),
+            data: null
+          } as MarkSnapRecord
           this.markSnapRecords.push(record)
+          this.options.keep && localStorage.setItem(MARK_SNAP_RECORDS, JSON.stringify(this.markSnapRecords))
+
           data.callbackFn = (dbRecord: RecordData) => {
             this.markSnapRecords.forEach(item => {
               if (item.type === dbRecord.type && item.time === dbRecord.time) {
                 item.id = dbRecord.id
+                this.options.keep && localStorage.setItem(MARK_SNAP_RECORDS, JSON.stringify(this.markSnapRecords))
               }
             })
           }
@@ -304,6 +315,7 @@ export class RecorderModule extends Pluginable {
 
         if (this.markSnapRecords.length > 2) {
           this.markSnapRecords.splice(0, 1)
+          this.options.keep && localStorage.setItem(MARK_SNAP_RECORDS, JSON.stringify(this.markSnapRecords))
         }
 
         emitTasks.push(data)
