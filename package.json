@@ -37,7 +37,7 @@
         ],
         "*.ts?(x)": [
             "eslint",
-            "prettier --write --parser=typescript --fix"
+            "npx prettier --write ./packages/**/*.ts"
         ]
     },
     "engines": {

@@ -178,18 +178,14 @@ export class RecorderModule extends Pluginable {
     const markRecord = this.markSnapRecords[0]
 
     records?.forEach((record: RecordData) => {
-      if (!markRecord || !record) {
-        return false
-      }
-
-      if ((markRecord.id || 0) > (record.id || 0)) {
+      if (this.options.writeKeepTime > 0 && (markRecord?.id || 0) > (record.id || 0)) {
         return false
       }
       result.push(record)
     })
 
     // 还原快照 for dom/canvas
-    if (result[0] && result[0]?.type !== RecordType.HEAD) {
+    if (this.options.writeKeepTime > 0 && result[0] && result[0]?.type !== RecordType.HEAD) {
       result = [...markRecord.snapCanvasRecords, ...result]
       result = [markRecord.snapDomRecord, ...result]
     }
