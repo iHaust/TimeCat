@@ -37,7 +37,6 @@ export class IDB extends Database {
   }
 
   public delete(options: DeleteOptions) {
-    console.log('brucecham delete', options)
     this.addTask(TaskTypes.DELETE, options)
   }
 
@@ -85,8 +84,8 @@ export class IDB extends Database {
     }).then((arr: DBRecordData[]) => (arr.length ? arr : null))
   }
 
-  public async getMarkRecord(options?: { limit: number }) {
-    const { limit = READ_LIMIT_TIME } = options || {}
+  public async getMarkRecord(options: { limit: number }) {
+    const { limit } = options
     const markTime = getTime()
     if (!this.db?.transaction) {
       await this.dbResolve

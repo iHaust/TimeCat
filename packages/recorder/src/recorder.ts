@@ -65,7 +65,8 @@ export class RecorderModule extends Pluginable {
     emitLocationImmediate: true,
     context: window,
     rewriteResource: [],
-    disableWatchers: []
+    disableWatchers: [],
+    writeKeepTime: READ_LIMIT_TIME
   } as RecordOptions
   private defaultMiddleware: RecorderMiddleware[] = []
   private destroyStore: Set<Function> = new Set()
@@ -198,7 +199,7 @@ export class RecorderModule extends Pluginable {
 
   public async getMarkRecord() {
     return await this.db.getMarkRecord({
-      limit: this.options.recordDuration
+      limit: this.options.writeKeepTime
     })
   }
 
@@ -285,7 +286,7 @@ export class RecorderModule extends Pluginable {
           needMarkSnap = true
         } else {
           const lastMarkSnapRecord = this.markSnapRecords[this.markSnapRecords.length - 1]
-          if (getTime() - lastMarkSnapRecord.time > Math.max(this.options.recordDuration || 0, READ_LIMIT_TIME)) {
+          if (getTime() - lastMarkSnapRecord.time > this.options.writeKeepTime) {
             needMarkSnap = true
           }
         }
@@ -468,10 +469,11 @@ export class RecorderModule extends Pluginable {
   }
 
   private intervalDelDB() {
-    if (this.options.recordDuration !== 0) {
+    const { write, writeKeepTime } = this.options
+    if (write && writeKeepTime !== 0) {
       window.setInterval(async () => {
         this.deleteSome()
-      }, Math.max(this.options.recordDuration || 0, READ_LIMIT_TIME))
+      }, writeKeepTime)
     }
   }
 }
