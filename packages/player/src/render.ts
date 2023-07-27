@@ -82,6 +82,9 @@ export async function renderAll(
       break
     }
     case RecordType.CANVAS_SNAPSHOT: {
+      if (!isJumping && speed === 1) {
+        await actionDelay()
+      }
       renderCanvasSnapshot(data as CanvasSnapshotRecordData)
       break
     }

@@ -1,3 +1,11 @@
+/*
+ * @Author: zhanglitao@zuoyebang.com
+ * @Date: 2023-07-12 14:33:15
+ * @LastEditors: zhanglitao@zuoyebang.com
+ * @LastEditTime: 2023-07-27 18:44:44
+ * @FilePath: /TimeCat/packages/player/src/renders/canvas/2d.ts
+ * @Description: some description for file
+ */
 import { CanvasRecordData, UnionToIntersection } from '@timecat/share'
 import { canvasContext2DKeys, nodeStore } from '@timecat/utils'
 
@@ -43,10 +51,7 @@ export function renderCanvas2D(canvasRecordData: CanvasRecordData) {
         ;(ctx[name] as Object) = strokeArgs
       } else {
         const args = strokeArgs.slice()
-        if (name === 'createPattern') {
-          const nodeId = args[0]
-          args[0] = nodeStore.getNode(nodeId)
-        } else if (name === 'drawImage') {
+        if (name === 'createPattern' || name === 'drawImage') {
           const img = new Image()
           const src = args[0]
           if (src.length < 10) {
@@ -54,11 +59,16 @@ export function renderCanvas2D(canvasRecordData: CanvasRecordData) {
           }
           img.src = src
           args[0] = img
+          img.onload = () => {
+            ;(ctx[name] as Function).apply(ctx, args)
+          }
         } else if (name === 'putImageData') {
           const data = args[0].data
           args[0] = new ImageData(new Uint8ClampedArray(data), args[1], args[2])
+          ;(ctx[name] as Function).apply(ctx, args)
+        } else {
+          ;(ctx[name] as Function).apply(ctx, args)
         }
-        ;(ctx[name] as Function).apply(ctx, args)
       }
     }
   }

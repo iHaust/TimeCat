@@ -148,11 +148,22 @@ export class Canvas2DWatcher extends Watcher<CanvasRecord> {
   }
 
   private aggregateDataEmitter = this.strokesManager(
-    (id: number, strokes: { name: CanvasContext2DKeys; args: any[] }[]) => {
-      this.emitData(RecordType.CANVAS, {
-        id,
-        strokes
-      })
+    (
+      recordType: RecordType.CANVAS | RecordType.CANVAS_SNAPSHOT,
+      id: number,
+      data: { name: CanvasContext2DKeys; args: any[] }[] | string
+    ) => {
+      if (recordType === RecordType.CANVAS) {
+        this.emitData(RecordType.CANVAS, {
+          id,
+          strokes: data
+        })
+      } else if (recordType === RecordType.CANVAS_SNAPSHOT) {
+        this.emitData(RecordType.CANVAS_SNAPSHOT, {
+          id,
+          src: data
+        })
+      }
     }
   )
 
@@ -179,19 +190,24 @@ export class Canvas2DWatcher extends Watcher<CanvasRecord> {
         timeouts[id] = 0
         const strokes = tasks[id].slice()
 
+        // start 暂时以快照方式代替，proxy方式存在问题，变量对象会丢失 todo brucecham
         // Ignore duplicate rendering
-        const { width: canvasWidth, height: canvasHeight } = canvas.getBoundingClientRect()
-        const clearIndex = strokes.reverse().findIndex(stroke => {
-          if (stroke.name === clearRectIndex) {
-            const args = stroke.args
-            if (args[0] === 0 && args[1] === 0 && args[2] === canvasWidth && args[3] === canvasHeight) {
-              return true
-            }
-          }
-        })
-        const latestStrokes = !~clearIndex ? strokes.reverse() : strokes.slice(0, clearIndex + 1).reverse()
+        // const { width: canvasWidth, height: canvasHeight } = canvas.getBoundingClientRect()
+        // const clearIndex = strokes.reverse().findIndex(stroke => {
+        //   if (stroke.name === clearRectIndex) {
+        //     const args = stroke.args
+        //     if (args[0] === 0 && args[1] === 0 && args[2] === canvasWidth && args[3] === canvasHeight) {
+        //       return true
+        //     }
+        //   }
+        // })
+        // const latestStrokes = !~clearIndex ? strokes.reverse() : strokes.slice(0, clearIndex + 1).reverse()
+        // func.call(context, RecordType.CANVAS, id, strokes)
 
-        func.call(context, id, latestStrokes)
+        const dataURL = canvas.toDataURL()
+        func.call(context, RecordType.CANVAS_SNAPSHOT, id, dataURL)
+        // end
+
         tasks[id].length = 0
       }
 
