@@ -174,7 +174,7 @@ export function getRecordsFromStore() {
 }
 
 export async function getRecordsFromDB() {
-  const records: DBRecordData[] | null = await idb.readAll()
+  const records: DBRecordData[] | null = await idb().readAll()
   if (records && records.length) {
     return records
   }

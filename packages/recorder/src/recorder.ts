@@ -18,10 +18,11 @@ import {
   tempEmptyPromise,
   tempPromise,
   IDB,
-  idb,
   delay,
   MARK_SNAP_RECORDS,
-  READ_LIMIT_TIME
+  READ_LIMIT_TIME,
+  DEFAULT_PAGE_NAME,
+  idb
 } from '@timecat/utils'
 import { Snapshot } from './snapshot'
 import { getHeadData } from './head'
@@ -57,6 +58,7 @@ export class Recorder {
 
 export class RecorderModule extends Pluginable {
   private static defaultRecordOpts = {
+    pageKey: DEFAULT_PAGE_NAME,
     mode: 'default',
     write: true,
     keep: false,
@@ -78,6 +80,7 @@ export class RecorderModule extends Pluginable {
   private watcherResolve: Function
   private startTime: number
   private destroyTime: number
+  // 页面定时快照数据，最多存储2个，使用时取第0位，第1位是替补
   private markSnapRecords: MarkSnapRecord[] = []
 
   public status: RecorderStatus = RecorderStatus.PAUSE
@@ -115,7 +118,7 @@ export class RecorderModule extends Pluginable {
   private init() {
     this.startTime = getTime()
     const options = this.options
-    this.db = idb
+    this.db = idb(options.pageKey)
     this.loadPlugins()
     this.hooks.beforeRun.call(this)
     this.record(options)
