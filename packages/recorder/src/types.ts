@@ -2,7 +2,7 @@
  * @Author: zhanglitao@zuoyebang.com
  * @Date: 2023-07-12 14:33:15
  * @LastEditors: zhanglitao@zuoyebang.com
- * @LastEditTime: 2023-08-01 18:10:51
+ * @LastEditTime: 2023-08-03 15:19:26
  * @FilePath: /TimeCat/packages/recorder/src/types.ts
  * @Description: type
  */
@@ -20,7 +20,7 @@ interface RecordVideoOptions {
 }
 
 interface RecordOptionsBase {
-  pageKey: string
+  storeKey: string
   rootRecorder?: RecorderModule
   context?: Window
   rootContext?: Window

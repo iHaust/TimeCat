@@ -21,7 +21,7 @@ import {
   delay,
   MARK_SNAP_RECORDS,
   READ_LIMIT_TIME,
-  DEFAULT_PAGE_NAME,
+  DEFAULT_DB_NAME,
   idb
 } from '@timecat/utils'
 import { Snapshot } from './snapshot'
@@ -58,7 +58,7 @@ export class Recorder {
 
 export class RecorderModule extends Pluginable {
   private static defaultRecordOpts = {
-    pageKey: DEFAULT_PAGE_NAME,
+    storeKey: DEFAULT_DB_NAME,
     mode: 'default',
     write: true,
     keep: false,
@@ -118,7 +118,7 @@ export class RecorderModule extends Pluginable {
   private init() {
     this.startTime = getTime()
     const options = this.options
-    this.db = idb(options.pageKey)
+    this.db = idb(options.storeKey)
     this.loadPlugins()
     this.hooks.beforeRun.call(this)
     this.record(options)
