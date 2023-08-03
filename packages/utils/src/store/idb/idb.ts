@@ -11,7 +11,6 @@ import { DBRecordData, RecordData, TransactionMode } from '@timecat/share'
 
 import { logError, getTime } from '../../tools'
 import { Database } from './database'
-import { READ_LIMIT_TIME } from '../consts'
 
 enum TaskTypes {
   'ADD',

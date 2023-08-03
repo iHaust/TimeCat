@@ -2,7 +2,7 @@
  * @Author: zhanglitao@zuoyebang.com
  * @Date: 2023-07-18 16:57:49
  * @LastEditors: zhanglitao@zuoyebang.com
- * @LastEditTime: 2023-08-02 10:07:20
+ * @LastEditTime: 2023-08-03 11:11:32
  * @FilePath: /TimeCat/packages/utils/src/store/idb/index.ts
  * @Description: some description for file
  */
@@ -22,5 +22,5 @@ let idbInstance: IDB
 
 export const idb = (key: string = DEFAULT_PAGE_NAME) => {
   if (idbInstance) return idbInstance
-  return new IDB(DB_NAME, 1, `${DB_TABLE}__${key}`)
+  return (idbInstance = new IDB(DB_NAME, 1, `${DB_TABLE}__${key}`))
 }
