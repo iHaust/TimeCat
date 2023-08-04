@@ -22,7 +22,9 @@ import {
   MARK_SNAP_RECORDS,
   READ_LIMIT_TIME,
   DEFAULT_DB_NAME,
-  idb
+  idb,
+  isDev,
+  logInfo
 } from '@timecat/utils'
 import { Snapshot } from './snapshot'
 import { getHeadData } from './head'
@@ -45,6 +47,9 @@ export class Recorder {
   public readDB: RecorderModule['readDB'] = tempPromise
   public getMarkRecord: RecorderModule['getMarkRecord'] = tempPromise
   constructor(options?: RecordOptions) {
+    if (!isDev) {
+      logInfo()
+    }
     const recorder = new RecorderModule(options)
     Object.keys(this).forEach((key: keyof Recorder) => {
       Object.defineProperty(this, key, {
