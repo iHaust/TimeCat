@@ -191,6 +191,7 @@ export class Canvas2DWatcher extends Watcher<CanvasRecord> {
         const strokes = tasks[id].slice()
 
         // start 暂时以快照方式代替，proxy方式存在问题，变量对象会丢失 todo brucecham
+        // 1. records 去重  2. createPattern等api存在时，调用 snapshot，不存在时，正常api record
         // Ignore duplicate rendering
         // const { width: canvasWidth, height: canvasHeight } = canvas.getBoundingClientRect()
         // const clearIndex = strokes.reverse().findIndex(stroke => {
