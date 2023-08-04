@@ -265,11 +265,11 @@ export function logAsciiLogo() {
   /* eslint-disable */
   return console.log(
     `%c
-     _  ___   ___  
-    / |/ _ \ / _ \ 
-    | | | | | | | |
-    | | |_| | |_| |
-    |_|\___/ \___/    
+  _  ___   ___  
+/ |/ _ \ / _ \ 
+| | | | | | | |
+| | |_| | |_| |
+|_|\___/ \___/    作业帮 💯
     `,
     'color: #1475b2;'
   )
@@ -290,8 +290,7 @@ export function logBadge(opts: { title: string; content: string; titleColor?: st
 
 export function logInfo() {
   logAsciiLogo()
-  logBadge({ title: 'version', content: version })
-  logBadge({ title: 'more info', content: 'github.com/oct16/timecat' })
+  logBadge({ title: 'O(∩_∩)O', content: '让优质教育触手可及' })
 }
 
 export function removeGlobalVariables() {
